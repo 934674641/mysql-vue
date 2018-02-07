@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>todo-list</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="js/vue.js"></script>
+    <style>
+        .contained{
+            width:600px;
+            height:auto;
+            margin:50px auto;
+            border:1px solid #c8ffe6;
+        }
+        .title{
+            width: 100%;
+            height:120px;
+            background: #fff;
+            border-bottom: 1px solid #c8ffe6;
+        }
+        .title h3{
+            width: 100%;
+            height:70px;
+            text-align: center;
+            line-height: 70px;
+            font-size: 30px;
+            font-weight: 400;
+            color:#000000;
+        }
+        .title input{
+            width: 100%;
+            height:30px;
+            font-size: 12px;
+        }
+        .mes-static{
+            width:100%;
+            height:40px;
+        }
+        .static-list{
+            width: 50%;
+            height:100%;
+            float: right;
+            overflow: hidden;
+        }
+        .static-list button{
+            float: right;
+            margin-left:4px;
+        }
+        .list{
+            width: 100%;
+            height:auto;
+
+        }
+        .list-child{
+            width: 100%;
+            height:40px;
+            background: #5de7e8;
+            /*position: relative;*/
+        }
+        .list-child .list-static{
+            float: left;
+            width: 20px;
+            height:20px;
+            border:1px solid #ccc;
+            border-radius: 50%;
+            background: #e2ffe6;
+            float: left;
+            margin-right: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .list-child span{
+            float: left;
+        }
+        .list-child button{
+            float: right;
+            margin-top: 5px;
+        }
+        .content-text{
+            line-height: 40px;
+            text-align: left;
+        }
+        .notice{
+            font-size: 16px;
+            color:#0AA6E8;
+        }
+        .static{
+            background: #E80015 !important;
+        }
+        .no-data{
+            width: 100%;
+            height:25px;
+            line-height: 25px;
+            color:#000000;
+            text-align: center;
+        }
+        .toClass{
+            background:cyan!important;
+        }
+    </style>
+</head>
+<body>
+<div class="contained">
+    <div class="title">
+        <h3>代办事项</h3>
+        <input type="text" placeholder="请输入内容" v-model="con" @keydown.13="save()" value="">
+        <span class="notice">{{message}}</span>
+    </div>
+    <div class="mes-static">
+        <div class="static-list">
+            <input class="btn btn-default todo" @click="changeStatic(0)" type="submit" :class="{toColor:status==0}" value="未完成">
+            <input class="btn btn-default done" type="submit" @click="changeStatic(1)" :class="{toColor:status==1}" value="完成">
+            <input class="btn btn-default all" type="submit" @click="changeStatic('all')" :class="{toColor:status=='all'}"  value="全部">
+        </div>
+    </div>
+    <div class="list">
+        <div class="list-child" v-for="item in datas" v-show="datas.length>0">
+          <div v-show="item.show">
+           <div class="list-static" @click="changeColor(item)" :class="{static:item.static==1}"></div>
+            <span class="content-text" @dblclick="changeEdit(item)">{{item.title}}</span>
+             <button class="btn btn-default del" @click="del(item.id)" type="submit">删除</button>
+             </div>
+            <div v-show="!item.show">
+                <input type="text" v-model="item.title" @blur="changeEdit(item)">
+            </div>
+        </div>
+
+
+    </div>
+    <div class="no-data" v-show="datas.length==0">
+        <span>没有数据</span>
+    </div>
+</div>
+</body>
+</html>
+<script>
+    var obj=new Vue({
+        el:".contained",
+        data:{
+            all:localStorage.todo?JSON.parse(localStorage.todo):[],
+            con:"",
+            message:"",
+            status:"all"
+        },
+        methods:{
+            save(){
+                if(!this.con){
+                    this.message="请输入内容";
+                    return;
+                }
+                this.message="";
+                var obj={};
+                obj.id=new Date().getTime()+1000*Math.random();
+                obj.title=this.con;
+                obj.static=0;
+                obj.show=true;
+                this.all.push(obj);
+                localStorage.todo=JSON.stringify(this.all);
+                this.con=""
+            },
+           del(id){
+                this.all=this.all.filter(function(item){
+                    if(item.id!=id){
+                        return item;
+                    }
+                })
+               localStorage.todo=JSON.stringify(this.all);
+           },
+            changeColor(item){
+                    if(item.static==0){
+                        item.static=1
+                    }else if(item.static==1){
+                        item.static=0;
+                    }
+                localStorage.todo=JSON.stringify(this.all);
+            },
+            changeStatic(num){
+                this.status=num;
+            },
+            changeEdit(item){
+                item.show=!item.show;
+                localStorage.todo=JSON.stringify(this.all);
+            }
+        },
+        computed:{
+            datas(){
+                return this.all.filter((item)=>{
+                    if(this.status=="all"){
+                        return item;
+                    }else{
+                        if(item.static==this.status){
+                            return item;
+                        }
+                    }
+                })
+            }
+        }
+    })
+</script>
